@@ -47,6 +47,44 @@
     z-index: 0;
     display: block;
   }
+  /* ---------- AURORA (ambient drifting glow behind the stars) ---------- */
+  .aurora{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .aurora::before, .aurora::after{
+    content: '';
+    position: absolute;
+    width: 62vw;
+    height: 62vw;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.16;
+    will-change: transform;
+  }
+  .aurora::before{
+    background: var(--rose);
+    top: -12%;
+    left: -12%;
+    animation: auroraDrift1 26s ease-in-out infinite alternate;
+  }
+  .aurora::after{
+    background: var(--lavender);
+    bottom: -16%;
+    right: -12%;
+    animation: auroraDrift2 32s ease-in-out infinite alternate;
+  }
+  @keyframes auroraDrift1{
+    from{ transform: translate(0,0) scale(1); }
+    to{ transform: translate(8vw,10vh) scale(1.18); }
+  }
+  @keyframes auroraDrift2{
+    from{ transform: translate(0,0) scale(1); }
+    to{ transform: translate(-10vw,-8vh) scale(1.12); }
+  }
   main{ position: relative; z-index: 1; }
 
   section{
@@ -67,7 +105,11 @@
     filter: drop-shadow(0 0 28px rgba(242,184,75,0.55));
     margin-bottom: 0.5rem;
     opacity: 0;
-    animation: riseIn 1.6s ease forwards 0.2s;
+    animation: riseIn 1.6s ease forwards 0.2s, moonGlow 4.5s ease-in-out infinite 2s;
+  }
+  @keyframes moonGlow{
+    0%,100%{ filter: drop-shadow(0 0 28px rgba(242,184,75,0.55)); }
+    50%{ filter: drop-shadow(0 0 42px rgba(242,184,75,0.85)); }
   }
   .hero h1{
     font-size: clamp(2.4rem, 7vw, 4.6rem);
@@ -76,7 +118,16 @@
     opacity: 0;
     animation: riseIn 1.4s ease forwards 0.6s;
   }
-  .hero h1 span{ color: var(--rose); font-style: normal; }
+  .hero h1 span{
+    color: var(--rose);
+    font-style: normal;
+    display: inline-block;
+    animation: glowPulse 3.2s ease-in-out infinite 2.5s;
+  }
+  @keyframes glowPulse{
+    0%,100%{ text-shadow: 0 0 12px rgba(242,135,158,0.35); }
+    50%{ text-shadow: 0 0 26px rgba(242,135,158,0.8); }
+  }
   .hero p{
     max-width: 540px;
     color: var(--muted);
@@ -116,6 +167,33 @@
     to{ transform: translateY(-115vh) translateX(var(--drift, 20px)) rotate(20deg); opacity: 0; }
   }
 
+  /* ---------- CURSOR SPARKLE TRAIL ---------- */
+  .sparkle{
+    position: fixed;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px 2px rgba(242,184,75,0.85);
+    pointer-events: none;
+    z-index: 5;
+    animation: sparkleFade 0.7s ease-out forwards;
+  }
+  @keyframes sparkleFade{
+    to{ transform: scale(0.2); opacity: 0; }
+  }
+
+  /* ---------- BURST PARTICLES (constellation completion) ---------- */
+  .burst-particle{
+    position: fixed;
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 6;
+    animation: burstOut 1.1s ease-out forwards;
+  }
+  @keyframes burstOut{
+    to{ transform: translate(var(--bx), var(--by)) scale(0.25); opacity: 0; }
+  }
+
   /* ---------- REVEAL ---------- */
   .reveal{ opacity: 0; transform: translateY(28px); transition: opacity 0.9s ease, transform 0.9s ease; }
   .reveal.visible{ opacity: 1; transform: translateY(0); }
@@ -141,6 +219,12 @@
     display: flex;
     align-items: flex-start;
     gap: 0.9rem;
+    transition: transform 0.15s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    will-change: transform;
+  }
+  .call-log li:hover{
+    box-shadow: 0 14px 34px -12px rgba(242,184,75,0.25);
+    border-color: rgba(242,184,75,0.3);
   }
   .call-icon{
     flex-shrink: 0;
@@ -149,6 +233,10 @@
     background: rgba(242,184,75,0.12);
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem;
+    transition: transform 0.35s ease;
+  }
+  .call-log li:hover .call-icon{
+    transform: scale(1.18) rotate(-8deg);
   }
   .call-meta{
     font-family: 'Space Mono', monospace;
@@ -169,6 +257,7 @@
   .constellation .sub{ color: var(--muted); max-width: 480px; margin-bottom: 2.2rem; font-size: 0.95rem; }
   svg#sky{ width: 100%; max-width: 640px; height: auto; overflow: visible; }
   .star-dot{ cursor: pointer; transition: r 0.3s ease, filter 0.3s ease; }
+  .star-dot:hover{ filter: drop-shadow(0 0 8px rgba(242,184,75,0.8)); }
   .star-dot:focus-visible{ outline: 2px solid var(--gold); outline-offset: 4px; }
   .constellation-line{
     fill: none;
@@ -202,10 +291,10 @@
     padding: 0.8rem 1.6rem;
     border-radius: 999px;
     cursor: pointer;
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
   }
-  .next-star-btn:hover, .next-star-btn:focus-visible{ background: rgba(242,184,75,0.14); }
-  .next-star-btn:disabled{ opacity: 0.35; cursor: default; }
+  .next-star-btn:hover, .next-star-btn:focus-visible{ background: rgba(242,184,75,0.14); transform: translateY(-2px); }
+  .next-star-btn:disabled{ opacity: 0.35; cursor: default; transform: none; }
   .constellation-done{
     font-family: 'Space Mono', monospace;
     font-size: 0.75rem;
@@ -257,7 +346,9 @@
     padding: 0.85rem 1.7rem;
     border-radius: 999px;
     cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease;
   }
+  .wish-btn:hover{ transform: translateY(-2px); background: rgba(242,135,158,0.2); }
   .wish-count{
     margin-top: 0.9rem;
     font-family: 'Space Mono', monospace;
@@ -310,8 +401,9 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     resize: vertical;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
-  input:focus, textarea:focus{ outline: none; border-color: var(--gold); }
+  input:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(242,184,75,0.15); }
   textarea{ min-height: 120px; }
   .submit-btn{
     margin-top: 0.4rem;
@@ -326,10 +418,10 @@
     text-transform: uppercase;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
   }
-  .submit-btn:hover{ transform: translateY(-2px); }
-  .submit-btn:disabled{ opacity: 0.5; cursor: default; transform: none; }
+  .submit-btn:hover{ transform: translateY(-2px); box-shadow: 0 10px 24px -8px rgba(242,184,75,0.5); }
+  .submit-btn:disabled{ opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
   .status-msg{
     font-family: 'Space Mono', monospace;
     font-size: 0.78rem;
@@ -357,6 +449,7 @@
 <body>
 
 <canvas id="stars"></canvas>
+<div class="aurora"></div>
 
 <main>
 
@@ -401,14 +494,14 @@
         <div class="call-icon">☕</div>
         <div>
           <div class="call-meta">THE HANGOUT THAT RAN LONG</div>
-          <div class="call-note">We planned an hour and stayed for four. Neither of us checked the time once.</div>
+          <div class="call-note">We planned an hour and stayed for four — it always goes like that, too fast, every single time we see each other.</div>
         </div>
       </li>
       <li class="reveal">
-        <div class="call-icon">😂</div>
+        <div class="call-icon">🌸</div>
         <div>
-          <div class="call-meta">THE DAY WE COULDN'T STOP LAUGHING</div>
-          <div class="call-note">Something set us off and we couldn't stop. My stomach hurt for an hour after.</div>
+          <div class="call-meta">THE NIGHT YOUR SCENT STAYED</div>
+          <div class="call-note">You left, but your smell didn't — it stayed in my room for hours after, soft and sweet, all over my bed, like you hadn't really gone.</div>
         </div>
       </li>
     </ul>
@@ -529,6 +622,65 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeRnCSPFnPfp_ATiwpd
   items.forEach(el => io.observe(el));
 })();
 
+/* ============ CURSOR SPARKLE TRAIL (desktop, motion-safe only) ============ */
+(function(){
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!canHover || reduced) return;
+  let last = 0;
+  window.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if(now - last < 55) return;
+    last = now;
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = e.clientX + 'px';
+    s.style.top = e.clientY + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 700);
+  });
+})();
+
+/* ============ MOMENT CARD TILT (desktop, motion-safe only) ============ */
+(function(){
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!canHover || reduced) return;
+  document.querySelectorAll('.call-log li').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const rotateX = ((y / rect.height) - 0.5) * -7;
+      const rotateY = ((x / rect.width) - 0.5) * 7;
+      card.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
+})();
+
+/* ============ PARTICLE BURST (used when the constellation completes) ============ */
+function spawnBurst(x, y){
+  const symbols = ['✦', '✧', '♡', '·'];
+  const count = 16;
+  for(let i = 0; i < count; i++){
+    const p = document.createElement('div');
+    p.className = 'burst-particle';
+    p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.color = Math.random() > 0.5 ? 'var(--gold)' : 'var(--rose)';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 55 + Math.random() * 95;
+    p.style.setProperty('--bx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--by', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+}
+
 /* ============ CONSTELLATION (infinity curve) ============ */
 (function(){
   const svg = document.getElementById('sky');
@@ -628,6 +780,10 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeRnCSPFnPfp_ATiwpd
         closeLine.setAttribute('x2', last.x + (first.x - last.x) * progress);
         closeLine.setAttribute('y2', last.y + (first.y - last.y) * progress);
         if(progress < 1) requestAnimationFrame(animateClose);
+        else{
+          const rect = svg.getBoundingClientRect();
+          spawnBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
       }
       requestAnimationFrame(animateClose);
     }
